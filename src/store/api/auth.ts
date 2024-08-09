@@ -10,14 +10,14 @@ export const authApi = createApi({
 	endpoints: (builder) => ({
 		registerUser: builder.mutation({
 			query: (data: any) => ({
-				url: "/account/login/",
+				url: "/account/signup/",
 				method: "post",
 				data,
 			}),
 		}),
 		loginUser: builder.mutation({
 			query: (data: any) => ({
-				url: "/account/signup/",
+				url: "/account/login/",
 				method: "post",
 				data,
 			}),
@@ -44,5 +44,5 @@ export const authApi = createApi({
 export const {
 	useRegisterUserMutation,
 	useLoginUserMutation,
-	useLoadUserQuery,
+	useLazyLoadUserQuery,
 } = authApi;

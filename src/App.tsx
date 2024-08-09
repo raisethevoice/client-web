@@ -2,12 +2,16 @@ import Navbar from "components/Navbar";
 import AppLayout from "layouts/AppLayout";
 import FeedPage from "pages/feed";
 import PostPage from "pages/post";
+import { useEffect } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { useLoadUserQuery } from "store/api/auth";
+import { useLazyLoadUserQuery } from "store/api/auth";
 
 export default function App() {
-	const { data } = useLoadUserQuery("");
-	console.log(data);
+	const [loadUser] = useLazyLoadUserQuery();
+
+	useEffect(() => {
+		loadUser("");
+	}, []);
 
 	return (
 		<BrowserRouter>

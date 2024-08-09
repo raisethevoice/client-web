@@ -1,19 +1,18 @@
 import { IoNewspaperOutline } from "react-icons/io5";
 import { useDispatch, useSelector } from "react-redux";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { RootState } from "store";
-import { handlePostModal } from "store/prompt";
+import { handlePostModal, requireAuth } from "store/prompt";
 
 export default function Sidebar() {
 	const dispatch = useDispatch();
 	const { user } = useSelector((state: RootState) => state.auth);
-	const navigate = useNavigate();
 
 	const onWritePost = () => {
 		if (user) {
 			dispatch(handlePostModal({ open: true }));
 		} else {
-			navigate("/login");
+			dispatch(requireAuth());
 		}
 	};
 

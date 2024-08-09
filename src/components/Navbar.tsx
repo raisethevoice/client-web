@@ -1,6 +1,14 @@
+import { Dropdown, Menu } from "antd";
+import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
+import { RootState } from "store";
+import { handleAuthModal } from "store/prompt";
+import storage from "utils/storage";
 
 export default function Navbar() {
+	const { user } = useSelector((state: RootState) => state.auth);
+	const dispatch = useDispatch();
+
 	return (
 		<div>
 			<nav className="bg-white shadow fixed w-full z-[999]">
@@ -44,17 +52,16 @@ export default function Navbar() {
 							</div>
 						</div>
 						<div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
-							<div className="ml-3 relative">
-								<div className="flex items-center justify-between">
-									<Link
-										to="/login"
-										className="bg-gray-900 !hover:text-white !text-white px-3 py-2 rounded-md text-sm font-medium"
-										aria-current="page"
-									>
-										Sign in
-									</Link>
+							{user ? (
+								<NavbarDropdown />
+							) : (
+								<div
+									className="bg-gray-900 !hover:text-white !text-white px-3 py-2 rounded-md text-sm font-medium cursor-pointer"
+									onClick={() => dispatch(handleAuthModal({ open: true }))}
+								>
+									Sign in
 								</div>
-							</div>
+							)}
 						</div>
 					</div>
 				</div>
@@ -63,3 +70,52 @@ export default function Navbar() {
 		</div>
 	);
 }
+
+const NavbarDropdown = () => {
+	const handleLogout = () => {
+		storage.clear();
+		window.location.reload();
+	};
+
+	return (
+		<Dropdown
+			placement="bottomRight"
+			overlayStyle={{ width: 150 }}
+			overlay={
+				<Menu
+					items={[
+						{
+							label: <Link to="/profile">Profile</Link>,
+							key: "profile",
+						},
+						{
+							label: <Link to="/help">Help</Link>,
+							key: "help",
+						},
+						{ type: "divider" },
+						{
+							label: <span>Logout</span>,
+							key: "Logout",
+							onClick: handleLogout,
+						},
+					]}
+				/>
+			}
+		>
+			<button
+				type="button"
+				className="bg-gray-800 flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white mr-4"
+				id="user-menu-button"
+				aria-expanded="false"
+				aria-haspopup="true"
+			>
+				<span className="sr-only">Open user menu</span>
+				<img
+					className="h-8 w-8 rounded-full"
+					src="/default-avatar.webp"
+					alt="profile"
+				/>
+			</button>
+		</Dropdown>
+	);
+};

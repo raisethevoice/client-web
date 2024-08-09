@@ -1,4 +1,4 @@
-import { Button, Input, Modal, Spin, TextArea } from "lib";
+import { Button, Input, Modal, TextArea } from "lib";
 import { useState } from "react";
 import { FcGallery } from "react-icons/fc";
 import { useDispatch, useSelector } from "react-redux";
@@ -49,10 +49,7 @@ export default function PostModal() {
 					rows={8}
 				/>
 				<PostType />
-				<Button
-					onClick={handlePost}
-					suffix={<Spin spinning={isLoading} className="text-white" />}
-				>
+				<Button onClick={handlePost} loading={isLoading}>
 					Post
 				</Button>
 			</div>
