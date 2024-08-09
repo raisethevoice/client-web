@@ -1,0 +1,48 @@
+{% autoescape off %}
+    <body style="background-color: rgba(233, 233, 233, 0.562);
+    font-family: sans-serif;
+                padding:  20px;>
+    <div style="padding: 30px;
+                background-color: white;
+                border-radius: 20px;
+">
+        <h1 style="text-align: center;">Success Tune</h1>
+        <div style="width:100%; overflow:hidden; margin-bottom:20px">
+            <div style="float:left">
+                <h3>Dear {{ user.first_name }} {{ user.last_name }},</h3>
+            </div>
+            <div style="float:right">
+                Date:{{ date }}
+            </div>
+        </div>
+        <div style="margin-top: 20px;">
+            <p>Congratulations. Your account has been created successfully. To login activate your account by following
+                this steps:</p>
+            <ol style="margin-left: 20px;">
+                <li>Copy this link: <code>http://{{ domain }}{% url 'activate' uidb64=uid token=token %}</code></li>
+                <li>Paste in your browser tab</li>
+                <li>Hit enter</li>
+                <li>Now goto <a href="http://{{ domain }}/login" target="_blank">Login</a></li>
+            </ol>
+        </div>
+        <br>
+        <p style="text-align:center">Or Follow this link</p>
+            <a href="http://{{ domain }}{% url 'activate' uidb64=uid token=token %}  " target="_blank" style=" background-color: black;
+            border-radius: 20px;
+            text-align: center;
+            text-decoration: none;
+            color: white;
+            padding: 10px 20px;">Click
+                here</a>
+        <br><br>
+            <div>
+                <small>Regards</small>
+                <p>Success Tune Support Team</p>
+            </div>
+            <div>
+                <small>Copyright @ 2022 | <a href="https://raisethevoice.net/" class="link">Success
+                    Tune</a> | All Right Reserved</small>
+            </div>
+    </div>
+    </body>
+{% endautoescape %}
