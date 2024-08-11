@@ -41,7 +41,7 @@ cd raisethevoice
 
 4. **Run the App**:
     ```bash
-    npx vite
+    npm run dev
     ```
 
 ### Server Setup
