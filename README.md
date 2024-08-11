@@ -71,8 +71,7 @@ cd raisethevoice
 
 Join the RaiseTheVoice community to ask questions, share ideas, and contribute:
 
-- [Telegram](https://telegram.com)
-- [Discord](https://discord.com)
+- [Telegram](https://t.me/+uDztOLfEPYphZTA1)
 
 Please adhere to our [Code of Conduct](./docs/CODE_OF_CONDUCT.md) in all community interactions.
 
