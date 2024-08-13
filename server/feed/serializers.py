@@ -4,11 +4,17 @@ from account.serializers import UserSerializer
 
 
 class PostSerializer(serializers.ModelSerializer):
-    author = UserSerializer(required=False)
+    author = UserSerializer(required=False, read_only=True)
 
     class Meta:
         model = Post
         fields = "__all__"
+        extra_kwargs = {
+            "visits": {'read_only': True},
+            "total_likes": {'read_only': True},
+            "total_comments": {'read_only': True},
+            "is_active": {'read_only': True},
+        }
 
     def create(self, validated_data):
         title = validated_data.pop("title")
@@ -20,15 +26,21 @@ class PostSerializer(serializers.ModelSerializer):
 
 
 class LikePostSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
 
     class Meta:
         model = LikePost
         fields = "__all__"
-        depth = 1
+        depth = 2
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+
     class Meta:
         model = Comment
         fields = "__all__"
         depth = 1
+        extra_kwargs = {
+            "total_likes": {"read_only": True}
+        }

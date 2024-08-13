@@ -16,16 +16,25 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from drf_spectacular.utils import extend_schema, extend_schema_view, inline_serializer, OpenApiParameter, OpenApiTypes
 from decouple import config
+from rest_framework import serializers as drf_serializers
 
 from account.models import *
 from account.serializers import *
 from account.token import account_activation_token
 from raisethevoice import settings
 
-
+@extend_schema_view(
+    post=extend_schema(
+        responses={
+            201: UserSerializer
+        }
+    )
+)
 class SignUpView(APIView):
     permission_classes = [AllowAny]
+    serializer_class = UserSerializer
 
     def post(self, request):
         serializer = UserSerializer(data=request.data)
@@ -46,7 +55,30 @@ class SignUpView(APIView):
 
         return Response(serializer.errors)
 
-
+@extend_schema_view(
+    post=extend_schema(
+        responses={
+            200: inline_serializer(
+                name="LoginViewResponse",
+                fields={
+                    "first_name": drf_serializers.CharField(),
+                    "last_name": drf_serializers.CharField(),
+                    "username": drf_serializers.CharField(),
+                    "email": drf_serializers.EmailField(),
+                    "token": drf_serializers.CharField(),
+                },
+            ),
+            400: inline_serializer(
+                name="LoginViewBadResponse",
+                fields={
+                    "msg": drf_serializers.CharField(
+                        default="Verify your account"
+                    ),
+                },
+            ),
+        }
+    )
+)
 class LoginView(ObtainAuthToken):
     permission_classes = [AllowAny]
 
@@ -57,7 +89,7 @@ class LoginView(ObtainAuthToken):
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
         if not user.is_active:
-            Response({"msg: Verify your account"}, status=status.HTTP_400_BAD_REQUEST)
+            Response({"msg" : "Verify your account"}, status=status.HTTP_400_BAD_REQUEST)
         token = Token.objects.get_or_create(user=user)
         return Response({
             'first_name': user.first_name,
@@ -68,7 +100,31 @@ class LoginView(ObtainAuthToken):
         })
 
 
+@extend_schema_view(
+    put=extend_schema(
+        responses={
+            200: inline_serializer(
+                name="ChangePasswordResponse",
+                fields={
+                    "msg": drf_serializers.CharField(
+                        default="Your password has been changed successfully."
+                    ),
+                },
+            ),
+            400: inline_serializer(
+                name="WrongPasswordResponse",
+                fields={
+                    "msg": drf_serializers.CharField(
+                        default="Wrong password."
+                    ),
+                },
+            )
+        }
+    )
+)
 class ChangePassword(APIView):
+    serializer_class = ChangePasswordSerializer
+
     def put(self, request, format=None):
         serializer = ChangePasswordSerializer(data=request.data)
 
@@ -80,12 +136,21 @@ class ChangePassword(APIView):
             request.user.set_password(serializer.data.get('new_password'))
             request.user.save()
 
-            return Response({"msg": "Your password has been changed successfully."}, status=status.HTTP_204_NO_CONTENT)
+            return Response({"msg": "Your password has been changed successfully."}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
+@extend_schema_view(
+    put = extend_schema(
+        request=UserSerializer,
+        responses={
+            200: UserSerializer
+        }
+    )
+)
 class UserView(APIView):
+    serializer_class = ProfileSerializer
+
     def get(self, request):
         profile = Profile.objects.filter(user=request.user).first()
         profile_serializer = ProfileSerializer(profile)
@@ -99,16 +164,16 @@ class UserView(APIView):
         return Response(serializer.errors,
                         status=status.HTTP_400_BAD_REQUEST)
 
-    def put(self, request):
-        serializer = UserSerializer(request.user, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors,
-                        status=status.HTTP_400_BAD_REQUEST)
-
+@extend_schema_view(
+    get = extend_schema(
+        responses={
+            200: UserSerializer(many=True)
+        }
+    )
+)
 class UsersView(APIView):
     # permission_classes = [IsAuthenticatedOrReadOnly]
+    serializer_class = UserSerializer
 
     def get(self, request):
         # users = User.objects.filter(~Q(id=request.user.id) & Q(is_active=True) & ~Q(Follow.objects.filter(~Q(follower=request.user)))).order_by(
@@ -118,7 +183,20 @@ class UsersView(APIView):
         user_serializer = UserSerializer(users, many=True)
         return Response(user_serializer.data)
 
-
+@extend_schema_view(
+    get=extend_schema(
+        responses={
+            201: inline_serializer(
+                name="LogoutViewResponse",
+                fields={
+                    "msg": drf_serializers.CharField(
+                        default="Logged out"
+                    ),
+                },
+            ),
+        }
+    )
+)
 class LogoutView(APIView):
     permission_classes = [AllowAny]
 
@@ -128,21 +206,12 @@ class LogoutView(APIView):
 
 
 class ProfileView(APIView):
-    def get(self, request):
+    serializer_class = ProfileSerializer
+
+    def get(self, request, pk):
         profile = Profile.objects.filter(user=request.user).first()
         profile_serializer = ProfileSerializer(profile)
         return Response(profile_serializer.data)
-
-    def post(self, request):
-        if not request.user:
-            serializer = ProfileSerializer(data=request.data)
-            if serializer.is_valid():
-                serializer.user = request.user
-                serializer.save()
-                return Response(serializer.data)
-        else:
-            return Response(status=status.HTTP_226_IM_USED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request, pk):
         data = request.data
@@ -150,10 +219,10 @@ class ProfileView(APIView):
         user = User.objects.filter(id=request.user.id).first()
         if data.get('first_name'):
             user.first_name = data['first_name']
-            user.save()
+            user.save(update_fields=["first_name"])
         if data.get('last_name'):
             user.last_name = data['last_name']
-            user.save()
+            user.save(update_fields=["last_name"])
         if profile:
             serializer = ProfileSerializer(profile, data=data)
             if serializer.is_valid():
@@ -202,28 +271,62 @@ def activate(request, uidb64, token):
     else:
         return redirect(config('CLIENT_URL', default="http://localhost:3000") + "/login")
 
-
+@extend_schema_view(
+    get=extend_schema(
+        responses={
+            200: FollowSerializer(many=True)
+        }
+    ),
+    post=extend_schema(
+        parameters=[OpenApiParameter("id", OpenApiTypes.INT, required=True),],
+        responses={
+            200: inline_serializer(
+                name="UnfollowViewResponse",
+                fields={
+                    "msg": drf_serializers.CharField(
+                        default="Started Unfollowing {user.first_name}"
+                    ),
+                },
+            ),
+            201: inline_serializer(
+                name="FollowViewResponse",
+                fields={
+                    "msg": drf_serializers.CharField(
+                        default="Started following {user.first_name}"
+                    ),
+                },
+            ),
+        }
+    )
+)
 class FollowView(APIView):
+    serializer_class = FollowSerializer
+
     def get(self, request):
         followings = Follow.objects.filter(follower=request.user)
         serializer = FollowSerializer(followings, many=True)
         return Response(serializer.data)
 
     def post(self, request):
-        pk = request.GET.get('id')[:-1]
+        pk = request.GET.get('id')
         user = User.objects.filter(id=pk).first()
         exist = Follow.objects.filter(following=user, follower=request.user).first()
         if exist:
             exist.delete()
-            return Response({"msg: Started Unfollowing {}".format(user.first_name)}, status=status.HTTP_200_OK)
+            return Response({"msg": f"Started Unfollowing {user.first_name}"}, status=status.HTTP_200_OK)
         else:
             Follow.objects.create(following=user, follower=request.user)
-            return Response({"msg: Started Following {}".format(user.first_name)}, status=status.HTTP_201_CREATED)
+            return Response({"msg": f"Started Following {user.first_name}"}, status=status.HTTP_201_CREATED)
 
 
 class AvatarView(APIView):
+    serializer_class = ProfileSerializer
+
     def get(self, request):
-        return HttpResponse("Are you there?")
+        profile = Profile.objects.filter(user=request.user).first()
+        serializer = ProfileSerializer(profile)
+        return Response(serializer.data)
+    
     def put(self, request):
         profile = Profile.objects.filter(user=request.user).first()
         data = request.data
@@ -231,3 +334,4 @@ class AvatarView(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

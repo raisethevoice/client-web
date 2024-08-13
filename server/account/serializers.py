@@ -11,9 +11,10 @@ class UserSerializer(ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'first_name', 'last_name', 'email',
-                  'username', 'password', 'type', 'profile', 'is_active']
-        extra_kwargs = {'type': {'required': False},
-                        'profile': {'required': False}, 'password': {'required': False}}
+                  'username', 'password', 'type', 'profile']
+        extra_kwargs = {'type': {'required': False, 'read_only': True},
+                        'profile': {'required': False, 'read_only': True},
+                        'password': {'write_only': True}}
 
 
     def create(self, validated_data):
@@ -30,13 +31,8 @@ class UserSerializer(ModelSerializer):
 
 
 class ChangePasswordSerializer(serializers.Serializer):
-    class Meta:
-        model = User
-
     current_password = serializers.CharField(required=True)
     new_password = serializers.CharField(required=True)
-    extra_kwargs = {'superadmin': {'required': False},
-                    'identity': {'required': False}}
 
 
 class UserInfoSerialzer(serializers.ModelSerializer):
@@ -84,12 +80,17 @@ class SetNewPasswordSerializer(serializers.Serializer):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+
     class Meta:
         model = Profile
         fields = "__all__"
         depth = 1
 
 class FollowSerializer(serializers.ModelSerializer):
+    follower = UserSerializer(read_only=True)
+    following = UserSerializer(read_only=True)
+
     class Meta:
         model = Follow
         fields = "__all__"

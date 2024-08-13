@@ -6,10 +6,25 @@ from feed.serializers import *
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from drf_spectacular.utils import extend_schema_view, OpenApiParameter, OpenApiTypes, extend_schema, inline_serializer
+from rest_framework import status
+from rest_framework import serializers as drf_serializers
 
-
+@extend_schema_view(
+    get = extend_schema(
+        parameters=[
+            OpenApiParameter("q", OpenApiTypes.STR, required=False),
+            OpenApiParameter("query", OpenApiTypes.STR, required=False),
+            OpenApiParameter("tag", OpenApiTypes.STR, required=False),
+        ],
+        responses={
+            200: PostSerializer(many=True)
+        }
+    )
+)
 class PostView(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
+    serializer_class = PostSerializer
 
     def get(self, request):
         search_query = request.GET.get('q')
@@ -55,9 +70,23 @@ class PostView(APIView):
         else:
             return Response(post_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
+@extend_schema_view(
+    delete = extend_schema(
+        responses={
+            204: inline_serializer(
+                name="SinglePostDeleteView",
+                fields={
+                    "msg": drf_serializers.CharField(
+                        default="Success"
+                    ),
+                }
+            )
+        }
+    )
+)
 class SinglePostView(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
+    serializer_class = PostSerializer
 
     def get(self, request, pk):
         post = Post.objects.get(id=pk)
@@ -81,12 +110,19 @@ class SinglePostView(APIView):
         if (Post.objects.filter(id=pk)).exists():
             post_serializer = Post.objects.get(id=pk)
             post_serializer.delete()
-            return Response("Success")
+            return Response({"msg": "Success"}, status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
-
+@extend_schema_view(
+    get = extend_schema(
+        responses = {
+            200: PostSerializer(many=True)
+        }
+    )
+)
 class TrendingPostView(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
+    serializer_class = PostSerializer
 
     def get(self, request):
         posts = Post.objects.filter(
@@ -102,9 +138,18 @@ def likeHandler(pk):
     post.total_likes = total_likes
     post.save()
 
-
+@extend_schema_view(
+    post=extend_schema(
+        request=None,
+        responses={
+            201: LikePostSerializer()
+        }
+    )
+)
 class LikePostView(APIView):
     # permission_classes = [IsAuthenticatedOrReadOnly]
+    serializer_class = LikePostSerializer
+
     def post(self, request, pk):
         liker = request.user
         check = LikePost.objects.filter(user=liker, post_id=pk).last()
@@ -122,6 +167,7 @@ class LikePostView(APIView):
 
 class MyPostView(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
+    serializer_class = PostSerializer
 
     def get(self, request):
         posts = Post.objects.filter(author=request.user).order_by('-id')
@@ -137,6 +183,8 @@ def commentHandler(pk):
 
 
 class CommentView(APIView):
+    serializer_class = CommentSerializer
+
     def get(self, request, pk):
         comments = Comment.objects.filter(feed_id=pk).order_by('-id')
         print(comments)
