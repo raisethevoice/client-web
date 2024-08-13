@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     'account.apps.AccountConfig',
     'feed.apps.FeedConfig',
     'django_cleanup.apps.CleanupConfig',
+    'drf_spectacular', # api documentations
 ]
 
 MIDDLEWARE = [
@@ -47,7 +48,8 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
-    ]
+    ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 ROOT_URLCONF = 'raisethevoice.urls'
@@ -128,3 +130,11 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default="*******")
 # GRAPHENE = {
 #     "SCHEMA": "product.schema.schema"
 # }
+
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Raise the voice API',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    "COMPONENT_SPLIT_REQUEST": True,
+}
