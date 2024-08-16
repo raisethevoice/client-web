@@ -101,13 +101,12 @@ class VoteView(APIView):
 
     def post(self, request, post_id, vote_type):
             post = get_object_or_404(Post, id=post_id)
-            vote = Vote.objects.get_or_create(user=request.user, post=post)
+            vote, created = Vote.objects.get_or_create(user=request.user, post=post)
 
-            current_vote = vote[0]
             current_vote_type = int(vote_type)
             
-            if current_vote.type == current_vote_type:
-                current_vote.delete()
+            if vote.type == current_vote_type:
+                vote.delete()
                 if current_vote_type == Vote.UPVOTE:
                     post.upvote_count -= 1
                 else:
@@ -115,15 +114,19 @@ class VoteView(APIView):
                 post.save()
                 return Response({'message': 'Vote removed'}, status=status.HTTP_204_NO_CONTENT)
             else:
-                if current_vote.type == Vote.UPVOTE:
-                    post.upvote_count -= 1
-                    post.downvote_count += 1
-                else:
-                    post.downvote_count -= 1
+                if current_vote_type == Vote.UPVOTE:
                     post.upvote_count += 1
-                current_vote.type = current_vote_type
-                current_vote.save()
+                    if not created:
+                        post.downvote_count -= 1
+                else:
+                    post.downvote_count += 1
+                    if not created:
+                        post.upvote_count -= 1
+
+                vote.type = current_vote_type
+                vote.save()
                 post.save()
+
                 return Response({'message': 'Vote updated'}, status=status.HTTP_200_OK)
         
 
