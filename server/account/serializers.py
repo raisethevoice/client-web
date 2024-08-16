@@ -25,7 +25,7 @@ class UserSerializer(ModelSerializer):
         password = validated_data.pop('password')
 
         user = User.objects.create_user(first_name=first_name, last_name=last_name,
-                                        username=username, email=email, password=password, is_active=True)
+                                        username=username, email=email, password=password, is_active=False)
 
         return user
 
@@ -33,13 +33,6 @@ class UserSerializer(ModelSerializer):
 class ChangePasswordSerializer(serializers.Serializer):
     current_password = serializers.CharField(required=True)
     new_password = serializers.CharField(required=True)
-
-
-class UserInfoSerialzer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['first_name', 'last_name', 'email', 'username']
-        depth = 1
 
 
 class ResetPasswordEmailSerializer(serializers.Serializer):

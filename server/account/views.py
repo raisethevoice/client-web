@@ -48,9 +48,7 @@ class SignUpView(APIView):
         if serializer.is_valid():
             serializer.save()
             user = User.objects.filter(username=request.data["username"]).first()
-            user.is_active = False
-            user.save()
-            account_activator(request, user)
+            send_account_verification_mail(request, user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors)
@@ -236,8 +234,8 @@ def ping(request):
     return HttpResponse('pong')
 
 
-def account_activator(request, user):
-    mail_subject = 'Activation link has been sent to your email'
+def send_account_verification_mail(request, user):
+    mail_subject = 'Verify Your Email Address for Raise The Voice'
     current_site = get_current_site(request)
     template = loader.get_template('email_template.txt')
     context = {
@@ -259,6 +257,7 @@ def account_activator(request, user):
 
 def activate(request, uidb64, token):
     user = get_user_model()
+    
     try:
         uid = force_str(urlsafe_base64_decode(uidb64))
         user = User.objects.get(pk=uid)

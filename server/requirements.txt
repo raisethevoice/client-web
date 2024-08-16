@@ -1,14 +1,12 @@
 aniso8601==9.0.1
-asgiref==3.5.2
-attrs==24.2.0
+asgiref==3.8.1
 dj-database-url==1.0.0
-Django==4.1
+Django==5.1
 django-ckeditor==6.4.2
 django-cleanup==6.0.0
 django-cors-headers==3.13.0
 django-js-asset==2.0.0
-djangorestframework==3.13.1
-drf-spectacular==0.27.2
+djangorestframework==3.15.2
 graphene==3.1.1
 graphene-django==3.0.0
 graphql-core==3.2.3
