@@ -7,7 +7,6 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
-
 class PostView(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
@@ -61,13 +60,12 @@ class SinglePostView(APIView):
 
     def get(self, request, pk):
         post = Post.objects.get(id=pk)
-        post.visits = post.visits + 1
+        post.visits += 1
         post.save()
         post_serializer = PostSerializer(post)
         return Response(post_serializer.data)
 
     def put(self, request, pk):
-        print(pk)
         post = Post.objects.get(id=pk)
         serializer = PostSerializer(
             post, data=request.data, partial=True)
@@ -78,7 +76,7 @@ class SinglePostView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
-        if (Post.objects.filter(id=pk)).exists():
+        if Post.objects.filter(id=pk).exists():
             post_serializer = Post.objects.get(id=pk)
             post_serializer.delete()
             return Response("Success")
@@ -96,28 +94,52 @@ class TrendingPostView(APIView):
         return Response(post_serializer.data)
 
 
-def likeHandler(pk):
-    total_likes = LikePost.objects.filter(post=pk).count()
-    post = Post.objects.filter(id=pk).first()
-    post.total_likes = total_likes
+def update_vote_counts(post):
+    post.upvote_count = Vote.objects.filter(post=post, vote=1).count()
+    post.downvote_count = Vote.objects.filter(post=post, vote=-1).count()
     post.save()
 
+class VoteView(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
-class LikePostView(APIView):
-    # permission_classes = [IsAuthenticatedOrReadOnly]
-    def post(self, request, pk):
-        liker = request.user
-        check = LikePost.objects.filter(user=liker, post_id=pk).last()
-        if check:
-            check.delete()
-            likeHandler(pk)
-            return Response(status=status.HTTP_200_OK)
+    def post(self, request, post_id):
+        user = request.user
+        vote_type = request.data.get('type')
 
-        new_like = LikePost.objects.create(user=liker, post_id=pk)
-        new_like.save()
-        likeHandler(pk)
-        serializer = LikePostSerializer(new_like)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        if vote_type not in ['up', 'down']:
+            return Response({'detail': 'Invalid vote type.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        post = Post.objects.get(id=post_id)
+
+        # Convert the vote type to integer
+        vote_value = Vote.UPVOTE if vote_type == 'up' else Vote.DOWNVOTE
+
+        # Check for an existing vote by this user on the post
+        existing_vote = Vote.objects.filter(user=user, post=post).first()
+
+        if existing_vote:
+            if existing_vote.type != vote_value:
+                # Update the existing vote
+                if vote_value == Vote.UPVOTE:
+                    post.upvote_count += 1
+                    post.downvote_count -= 1
+                else:
+                    post.downvote_count += 1
+                    post.upvote_count -= 1
+                existing_vote.type = vote_value
+                existing_vote.save()
+            # If the vote is the same as the existing one, do nothing
+        else:
+            # New vote
+            if vote_value == Vote.UPVOTE:
+                post.upvote_count += 1
+            else:
+                post.downvote_count += 1
+            Vote.objects.create(user=user, post=post, type=vote_value)
+
+        post.save()
+        return Response({'detail': 'Vote registered successfully.'}, status=status.HTTP_201_CREATED)
+
 
 
 class MyPostView(APIView):
@@ -139,7 +161,6 @@ def commentHandler(pk):
 class CommentView(APIView):
     def get(self, request, pk):
         comments = Comment.objects.filter(feed_id=pk).order_by('-id')
-        print(comments)
         serializer = CommentSerializer(comments, many=True)
         return Response(serializer.data)
 

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from feed.models import Post, LikePost, Comment
+from feed.models import Post, Vote, Comment
 from account.serializers import UserSerializer
 
 
@@ -19,12 +19,27 @@ class PostSerializer(serializers.ModelSerializer):
         return post
 
 
-class LikePostSerializer(serializers.ModelSerializer):
-
+class VoteSerializer(serializers.ModelSerializer):
     class Meta:
-        model = LikePost
+        model = Vote
         fields = "__all__"
         depth = 1
+
+    def create(self, validated_data):
+        user = validated_data['user']
+        post = validated_data['post']
+        vote = validated_data['vote']
+
+        # Handle vote logic
+        vote_instance, created = Vote.objects.get_or_create(user=user, post=post)
+        if not created:
+            if vote_instance.vote != vote:
+                vote_instance.vote = vote
+                vote_instance.save()
+        else:
+            vote_instance.save()
+
+        return vote_instance
 
 
 class CommentSerializer(serializers.ModelSerializer):
