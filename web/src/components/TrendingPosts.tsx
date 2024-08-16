@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { useGetTrendingPostsQuery } from 'store/api/feed';
 import { PostT } from 'types/feed';
 
-export default function Trending() {
+export default function TrendingPosts() {
   const { data } = useGetTrendingPostsQuery('');
 
   return (

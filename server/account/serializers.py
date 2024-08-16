@@ -13,7 +13,7 @@ class UserSerializer(ModelSerializer):
         fields = ['id', 'first_name', 'last_name', 'email',
                   'username', 'password', 'type', 'profile', 'is_active']
         extra_kwargs = {'type': {'required': False},
-                        'profile': {'required': False}, 'password': {'required': False}}
+                        'profile': {'required': False}, 'password': {'required': False, 'write_only': True}}
 
 
     def create(self, validated_data):
@@ -37,13 +37,6 @@ class ChangePasswordSerializer(serializers.Serializer):
     new_password = serializers.CharField(required=True)
     extra_kwargs = {'superadmin': {'required': False},
                     'identity': {'required': False}}
-
-
-class UserInfoSerialzer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['first_name', 'last_name', 'email', 'username']
-        depth = 1
 
 
 class ResetPasswordEmailSerializer(serializers.Serializer):

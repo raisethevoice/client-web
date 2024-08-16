@@ -16,7 +16,6 @@ export default function PostSingle({
   id,
   title,
   content,
-  total_likes,
   total_comments,
 }: PostT) {
   return (
@@ -61,22 +60,23 @@ export default function PostSingle({
 
       <div className="flex items-center gap-2.5 mt-4">
         <div className="flex items-center justify-center h-8 bg-gray-100 rounded-full overflow-hidden">
-          <div className="h-full w-full pl-2.5 pr-1.5 flex items-center justify-center cursor-pointer hover:bg-gray-200">
+          <div className="hover:bg-gray-200 cursor-pointer h-8 px-2.5 flex gap-1.5 items-center justify-center">
             <BiUpArrow className="text-lg" />
+            {total_comments !== undefined ? <p>{29}</p> : null}
           </div>
-          <div className="border-l border-r border-gray-200 h-full min-w-8 flex justify-center items-center px-2">
-            {total_likes !== undefined ? <p>{total_likes}</p> : <></>}
-          </div>
-          <div className="h-full w-full pl-1.5 pr-2.5 flex items-center justify-center cursor-pointer hover:bg-gray-200">
+          <div className="w-[1px] h-full bg-gray-200" />
+          <div className="hover:bg-gray-200 cursor-pointer h-8 px-2.5 flex gap-1.5 items-center justify-center">
             <BiDownArrow className="text-lg" />
+            {total_comments !== undefined ? <p>{12}</p> : null}
           </div>
         </div>
-        <div className="bg-gray-100 hover:bg-gray-200 cursor-pointer h-8 px-2.5 rounded-full flex gap-2 items-center justify-center">
-          <FaRegCommentAlt />
-          {total_comments !== undefined ? <p>{total_comments}</p> : null}
+
+        <div className="bg-gray-100 hover:bg-gray-200 cursor-pointer h-8 px-2.5 rounded-full flex gap-1.5 items-center justify-center">
+          <FaRegCommentAlt className="text-[15px] translate-y-[1px]" />
+          {total_comments !== undefined ? <p>{total_comments || 10}</p> : null}
         </div>
-        <div className="bg-gray-100 hover:bg-gray-200 cursor-pointer h-8 px-2.5 rounded-full flex gap-2 items-center justify-center">
-          <PiShareFat className="text-lg" />
+        <div className="bg-gray-100 hover:bg-gray-200 cursor-pointer h-8 px-2.5 rounded-full flex gap-1.5 items-center justify-center">
+          <PiShareFat className="text-[19px]" />
           21
         </div>
       </div>
