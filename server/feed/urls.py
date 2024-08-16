@@ -7,6 +7,6 @@ urlpatterns = [
     path('my-posts/', MyPostView.as_view()),
     path('<int:pk>/', SinglePostView.as_view()),
     path('trending/', TrendingPostView.as_view()),
-    path('vote/<int:post_id>/', VoteView.as_view()),
+    path('<int:post_id>/vote/<str:vote_type>/', VoteView.as_view()),
     path('comment/<int:pk>/', CommentView.as_view())
 ]

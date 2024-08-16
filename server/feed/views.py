@@ -1,11 +1,12 @@
 from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 from rest_framework.views import APIView
 from account.models import *
 from feed.serializers import *
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly,IsAuthenticated
 
 class PostView(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
@@ -94,51 +95,37 @@ class TrendingPostView(APIView):
         return Response(post_serializer.data)
 
 
-def update_vote_counts(post):
-    post.upvote_count = Vote.objects.filter(post=post, vote=1).count()
-    post.downvote_count = Vote.objects.filter(post=post, vote=-1).count()
-    post.save()
 
 class VoteView(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
-    def post(self, request, post_id):
-        user = request.user
-        vote_type = request.data.get('type')
+    def post(self, request, post_id, vote_type):
+            post = get_object_or_404(Post, id=post_id)
+            vote = Vote.objects.get_or_create(user=request.user, post=post)
 
-        if vote_type not in ['up', 'down']:
-            return Response({'detail': 'Invalid vote type.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        post = Post.objects.get(id=post_id)
-
-        # Convert the vote type to integer
-        vote_value = Vote.UPVOTE if vote_type == 'up' else Vote.DOWNVOTE
-
-        # Check for an existing vote by this user on the post
-        existing_vote = Vote.objects.filter(user=user, post=post).first()
-
-        if existing_vote:
-            if existing_vote.type != vote_value:
-                # Update the existing vote
-                if vote_value == Vote.UPVOTE:
-                    post.upvote_count += 1
-                    post.downvote_count -= 1
-                else:
-                    post.downvote_count += 1
+            current_vote = vote[0]
+            current_vote_type = int(vote_type)
+            
+            if current_vote.type == current_vote_type:
+                current_vote.delete()
+                if current_vote_type == Vote.UPVOTE:
                     post.upvote_count -= 1
-                existing_vote.type = vote_value
-                existing_vote.save()
-            # If the vote is the same as the existing one, do nothing
-        else:
-            # New vote
-            if vote_value == Vote.UPVOTE:
-                post.upvote_count += 1
+                else:
+                    post.downvote_count -= 1
+                post.save()
+                return Response({'message': 'Vote removed'}, status=status.HTTP_204_NO_CONTENT)
             else:
-                post.downvote_count += 1
-            Vote.objects.create(user=user, post=post, type=vote_value)
-
-        post.save()
-        return Response({'detail': 'Vote registered successfully.'}, status=status.HTTP_201_CREATED)
+                if current_vote.type == Vote.UPVOTE:
+                    post.upvote_count -= 1
+                    post.downvote_count += 1
+                else:
+                    post.downvote_count -= 1
+                    post.upvote_count += 1
+                current_vote.type = current_vote_type
+                current_vote.save()
+                post.save()
+                return Response({'message': 'Vote updated'}, status=status.HTTP_200_OK)
+        
 
 
 
