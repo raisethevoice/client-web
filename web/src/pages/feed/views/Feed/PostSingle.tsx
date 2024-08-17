@@ -7,6 +7,7 @@ import { PiShareFat } from 'react-icons/pi';
 import { Link } from 'react-router-dom';
 import { PostT } from 'types/feed';
 import { createMarkup } from 'utils/misc';
+import { BsThreeDotsVertical } from 'react-icons/bs';
 
 dayjs.extend(relativeTime);
 
@@ -30,7 +31,7 @@ export default function PostSingle({
             {author.first_name + ' ' + author.last_name}
           </div>
         </div>
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2">
           {/* <button className="rounded-2xl border bg-neutral-100 px-3 py-1 text-xs font-medium">
 						##
 					</button> */}
@@ -40,6 +41,9 @@ export default function PostSingle({
               : null}{' '}
             ago
           </div>
+          <button>
+            <BsThreeDotsVertical className="text-xs text-neutral-500" />
+          </button>
         </div>
       </div>
 
