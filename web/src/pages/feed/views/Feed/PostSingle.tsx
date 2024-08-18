@@ -8,6 +8,9 @@ import { Link } from 'react-router-dom';
 import { PostT } from 'types/feed';
 import { createMarkup } from 'utils/misc';
 import { BsThreeDotsVertical } from 'react-icons/bs';
+import { Dropdown } from 'antd';
+import { CiEdit } from 'react-icons/ci';
+import { MdOutlineReport, MdDeleteOutline } from 'react-icons/md';
 
 dayjs.extend(relativeTime);
 
@@ -41,9 +44,33 @@ export default function PostSingle({
               : null}{' '}
             ago
           </div>
-          <button>
-            <BsThreeDotsVertical className="text-xs text-neutral-500" />
-          </button>
+          <Dropdown
+            trigger={['click']}
+            placement="bottomRight"
+            overlayStyle={{ paddingTop: 10, width: 150 }}
+            menu={{
+              items: [
+                {
+                  label: 'Edit Post',
+                  key: 'edit_post',
+                  icon: <CiEdit size={15} />,
+                },
+                {
+                  label: 'Delete Post',
+                  key: 'delete_post',
+                  icon: <MdDeleteOutline size={15} />,
+                },
+                {
+                  label: <span>Report Post</span>,
+                  key: 'report_post',
+                  icon: <MdOutlineReport size={15} />,
+                  danger: true,
+                },
+              ],
+            }}
+          >
+            <BsThreeDotsVertical className="text-xs text-neutral-500 cursor-pointer" />
+          </Dropdown>
         </div>
       </div>
 
