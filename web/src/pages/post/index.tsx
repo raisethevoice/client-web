@@ -1,6 +1,9 @@
 import { Card, Skeleton } from "antd";
 import dayjs from "dayjs";
 import { useParams } from "react-router-dom";
+import { BiDownArrow, BiUpArrow } from 'react-icons/bi';
+import { FaRegCommentAlt } from 'react-icons/fa';
+import { PiShareFat } from 'react-icons/pi';
 import { useGetSinglePostQuery } from "store/api/feed";
 import { PostT } from "types/feed";
 import { createMarkup } from "utils/misc";
@@ -25,10 +28,35 @@ export default function PostPage() {
 					className="pt-2 pb-5"
 				/>
 				<hr className="mb-5" />
-				{/* <p>
-				Tag:{" "}
-				<span className="bg-gray-100 rounded-2xl px-2 py-1">#{data?.tag}</span>
-			</p> */}
+
+				{/* 
+				<p>
+					Tag:{" "}
+					<span className="bg-gray-100 rounded-2xl px-2 py-1">#{data?.tag}</span>
+				</p> */}
+
+				<div className="flex items-center gap-2.5 mt-4">
+					<div className="flex items-center justify-center h-8 bg-gray-100 rounded-full overflow-hidden">
+						<div className="hover:bg-gray-200 cursor-pointer h-8 px-2.5 flex gap-1.5 items-center justify-center">
+							<BiUpArrow className="text-lg" />
+							{data.comments !== undefined ? <p>{29}</p> : null}
+						</div>
+						<div className="w-[1px] h-full bg-gray-200" />
+						<div className="hover:bg-gray-200 cursor-pointer h-8 px-2.5 flex gap-1.5 items-center justify-center">
+							<BiDownArrow className="text-lg" />
+							{data.comments !== undefined ? <p>{12}</p> : null}
+						</div>
+					</div>
+
+					<div className="bg-gray-100 hover:bg-gray-200 cursor-pointer h-8 px-2.5 rounded-full flex gap-1.5 items-center justify-center">
+						<FaRegCommentAlt className="text-[15px] translate-y-[1px]" />
+						{data.comments !== undefined ? <p>{data.comments || 10}</p> : null}
+					</div>
+					<div className="bg-gray-100 hover:bg-gray-200 cursor-pointer h-8 px-2.5 rounded-full flex gap-1.5 items-center justify-center">
+						<PiShareFat className="text-[19px]" />
+						21
+					</div>
+				</div>
 			</div>
 		</div>
 	) : (
