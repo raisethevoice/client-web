@@ -42,7 +42,7 @@ class PostView(APIView):
             else:
                 posts = Post.objects.filter(is_active=True).order_by('-id')
         
-        post_serializer = PostSerializer(posts, many=True)
+        post_serializer = PostSerializer(posts, many=True, context={'request': request})
         return Response(post_serializer.data)
 
     def post(self, request):
