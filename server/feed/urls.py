@@ -8,5 +8,6 @@ urlpatterns = [
     path('<int:pk>/', SinglePostView.as_view()),
     path('trending/', TrendingPostView.as_view()),
     path('<int:post_id>/vote/<str:vote_type>/', VoteView.as_view()),
-    path('comment/<int:pk>/', CommentView.as_view())
+    path('comment/<int:post_id>/', CommentView.as_view()),
+    path('comment/<int:post_id>/<int:comment_id>', CommentView.as_view()),
 ]

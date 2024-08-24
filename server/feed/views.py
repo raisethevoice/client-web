@@ -42,7 +42,7 @@ class PostView(APIView):
             else:
                 posts = Post.objects.filter(is_active=True).order_by('-id')
         
-        post_serializer = PostSerializer(posts, many=True)
+        post_serializer = PostSerializer(posts, many=True, context={'request': request})
         return Response(post_serializer.data)
 
     def post(self, request):
@@ -149,15 +149,34 @@ def commentHandler(pk):
 
 
 class CommentView(APIView):
-    def get(self, request, pk):
-        comments = Comment.objects.filter(feed_id=pk).order_by('-id')
+    def get(self, request, post_id):
+        comments = Comment.objects.filter(feed_id=post_id).order_by('-id')
         serializer = CommentSerializer(comments, many=True)
         return Response(serializer.data)
 
-    def post(self, request, pk):
+    def post(self, request, post_id):
         data = request.data
         serializer = CommentSerializer(data=data)
         if serializer.is_valid():
-            serializer.save(user=request.user, feed_id=pk)
-            commentHandler(pk)
+            serializer.save(user=request.user, feed_id=post_id)
+            commentHandler(post_id)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+    def put(self, request, post_id, comment_id):
+        comment = Comment.objects.get(id=comment_id, feed_id=post_id)
+        if comment.user == request.user:
+            serializer = CommentSerializer(comment, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save(id=comment_id, feed_id=post_id)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"message":"User not found"}, status=status.HTTP_400_BAD_REQUEST)
+        
+
+
+    def delete(self, request, post_id, comment_id):
+        comment = Comment.objects.get(id=comment_id, feed_id=post_id)      
+        if comment.user == request.user:
+            comment.delete()
+            return Response({"message": "Comment deleted successfully"}, status=status.HTTP_200_OK)
+        return Response({"message":"User not found"}, status=status.HTTP_400_BAD_REQUEST)
