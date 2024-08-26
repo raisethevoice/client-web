@@ -14,7 +14,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { RootState } from 'store';
 import { useSubmitVoteMutation } from 'store/api/feed';
-import { requireAuth } from 'store/prompt';
+import {
+  handleDeletePostModal,
+  handleEditPostModal,
+  requireAuth,
+} from 'store/prompt';
 import { PostT } from 'types/feed';
 import { cn } from 'utils';
 import { createMarkup } from 'utils/misc';
@@ -31,6 +35,8 @@ enum VoteType {
 }
 
 export default function PostSingle(props: PostT) {
+  const dispatch = useDispatch();
+  const { user } = useSelector((state: RootState) => state.auth);
   const {
     author,
     created_at,
@@ -40,6 +46,19 @@ export default function PostSingle(props: PostT) {
     total_comments,
     share_count,
   } = props;
+
+  const handlethreeDotsClick = (key: string) => {
+    if (!user) {
+      dispatch(requireAuth());
+      return;
+    }
+
+    if (key === 'edit_post') {
+      dispatch(handleEditPostModal({ open: true, id: id }));
+    } else if (key === 'delete_post') {
+      dispatch(handleDeletePostModal({ open: true, id: id }));
+    }
+  };
 
   return (
     <div className="w-full rounded-xl border p-5 shadow-sm bg-white">
@@ -86,6 +105,7 @@ export default function PostSingle(props: PostT) {
                   danger: true,
                 },
               ],
+              onClick: (event) => handlethreeDotsClick(event.key),
             }}
           >
             <BsThreeDotsVertical className="text-xs text-neutral-500 cursor-pointer" />
