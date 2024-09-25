@@ -37,9 +37,9 @@ const FollowProfile = (user: UserT) => {
   const { username, profile, id } = user;
   const [followUser] = useFollowUserMutation();
 
-  const onfollow = () => {
-    setFollowed(true);
-    followUser({ id });
+  const onfollow = async () => {
+    await followUser({ id });
+    setFollowed(!followed);
   };
 
   return (
