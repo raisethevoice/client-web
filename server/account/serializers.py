@@ -7,17 +7,24 @@ from rest_framework.exceptions import AuthenticationFailed
 from account.models import *
 
 
-class UserSerializer(ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'first_name', 'last_name', 'email',
                   'username', 'password', 'type', 'profile', 'is_active']
-        extra_kwargs = {'type': {'required': False},
-                        'profile': {'required': False}, 'password': {'required': False, 'write_only': True}}
+        extra_kwargs = {
+            'first_name': {
+                'required': True,
+                'allow_blank': False,
+            },
+            'type': {'required': False},
+            'profile': {'required': False},
+            'password': {'required': False, 'write_only': True}
+        }
 
 
     def create(self, validated_data):
-        first_name = validated_data.pop('first_name', '')
+        first_name = validated_data.pop('first_name')
         last_name = validated_data.pop('last_name', '')
         username = validated_data.pop('username')
         email = validated_data.pop('email')
