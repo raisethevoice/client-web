@@ -215,5 +215,8 @@ class CommentView(APIView):
         comment = Comment.objects.get(id=comment_id, feed_id=post_id)      
         if comment.user == request.user:
             comment.delete()
+            post = Post.objects.get(id=post_id)
+            post.total_comments = max(0, post.total_comments - 1)
+            post.save()
             return Response({"message": "Comment deleted successfully"}, status=status.HTTP_200_OK)
         return Response({"message":"User not found"}, status=status.HTTP_400_BAD_REQUEST)
